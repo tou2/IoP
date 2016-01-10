@@ -71,22 +71,24 @@ void loop()
   Serial.print("Temperature: ");
   Serial.print(t);
   Serial.print(" *C ");
-  Serial.print(f);
-  Serial.print(" *F\t");
-  Serial.print("Heat index: ");
-  Serial.print(hic);
-  Serial.print(" *C ");
-  Serial.print(hif);
-  Serial.println(" *F");
+ // Serial.print(f);
+//  Serial.print(" *F\t");
+//  Serial.print("Heat index: ");
+//  Serial.print(hic);
+//  Serial.print(" *C ");
+//  Serial.print(hif);
+ // Serial.println(" *F");
 
    /**************Moistuer sensor*************/
-  moistsensVal = analogRead(moistsensPin);    
+  //moistsensVal = analogRead(moistsensPin); 
+  int moistsensVal = map(analogRead(moistsensPin),0,1024,0,100);   
   delay(1000);          
   Serial.print("soil moistuer = " );                       
   Serial.println(moistsensVal);               
 
    /**************light sensor*************/
-  litsensVal = analogRead(litsensPin);    
+  litsensVal = analogRead(litsensPin);   
+  int litsensVal = map(analogRead(litsensPin),0,1024,0,100);    
   delay(1000);          
   Serial.print("sensor = " );                       
   Serial.println(litsensVal);               
