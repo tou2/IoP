@@ -1,179 +1,170 @@
-#include <DHT.h>
-#include <SPI.h>
-#include <math.h>
 
+//loading libraries
+#include <SPI.h>
 #include <Ethernet.h>
+#include "DHT.h"
+
+//Defining arduino pins
+#define DHTPIN 2     // what digital pin we're connected to
+#define DHTTYPE DHT22 
+int moistsensPin = A0;    // select the input pin for the moistuer sensor
+int moistsensVal = 0;  // variable to store the value coming from the sensor
+int litsensPin = A2;  
+int litsensVal = 0;
+
+// Local Network Settings
 byte mac[] = { 0xD4, 0x28, 0xB2, 0xFF, 0xA0, 0xA1 }; // Must be unique on local network
 
-
-#define soilMoisturePIN 0 // soil moisture sensor connected to Analog Pin 0
-#define photoresistorPIN 2 // photoresistor connected to Analog Pin 0
-#define DHTPIN 3 // what pin we're connected to
-
-
- //thingspeak
-// replace with your channel's thingspeak API key, 
+// ThingSpeak Settings
 char thingSpeakAddress[] = "api.thingspeak.com";
-String writeAPIKey = "CMKRR51G4VAYJOEP";
+String writeAPIKey = "XXXMX2WYYR0EVZZZ";
+const int updateThingSpeakInterval = 16 * 1000;      // Time interval in milliseconds to update ThingSpeak (number of seconds * 1000 = interval)
 
-DHT dht(DHTPIN, DHT22,15);
+// Initialize DHT sensor.
+DHT dht(DHTPIN, DHTTYPE);
+
+// Variable Setup
+long lastConnectionTime = 0; 
+boolean lastConnected = false;
+int failedCounter = 0;
+
+// Initialize Arduino Ethernet Client
 EthernetClient client;
-
 
 void setup()
 {
-    pinMode(soilMoisturePIN, INPUT);
-  
-    pinMode(photoresistorPIN, INPUT);
-    Serial.begin(9600);
-  
-     dht.begin();
-     
-     startEthernet();
-    
-    
-    
-  }
+  // Start Serial for debugging on the Serial Monitor
+  Serial.begin(9600);
+  dht.begin();
+  // Start Ethernet on Arduino
+  startEthernet();
+}
 
+void loop()
+{
+  /**************humidity and temperature*************/
+    delay(2000);
 
-
-String dht22TandH = "";
-String soilMoist = "";
-String soilTemp = "";
-String illuminance = "";
-
-String GET = "GET /update?key=[THINGSPEAK_KEY]";
-String GET1 = "&field1="; //Ambient temperature chart
-String GET2 = "&field2="; //Humidity temperature chart
-String GET3 = "&field3="; //Soil moisture chart
-String GET5 = "&field4="; //photoresistor chart
-
-String cmd = "";
-
-
-
-//detects ambient temperature and humidity and then converts them into strings
-void loop() {
-   
+  // Reading temperature or humidity takes about 250 milliseconds!
   float h = dht.readHumidity();
+  int  humid = h;
+  // Read temperature as Celsius (the default)
   float t = dht.readTemperature();
-  if (isnan(h) || isnan(t)) {
+  int  temp = t;
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float f = dht.readTemperature(true);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f)) {
     Serial.println("Failed to read from DHT sensor!");
     return;
   }
 
-String soilMoisture (){
+  // Compute heat index in Fahrenheit (the default)
+  float hif = dht.computeHeatIndex(f, h);
+  // Compute heat index in Celsius (isFahreheit = false)
+  float hic = dht.computeHeatIndex(t, h, false);
 
-    float moisture;
-    char moisture_c[6];
-    //calculates the percentage of soil moisture
-    moisture = analogRead(soilMoisturePIN);
-    moisture = 100*(1-(moisture)/1023);
+  Serial.print("Humidity: ");
+  Serial.print(h);
+  Serial.print(" %\t");
+  Serial.print("Temperature: ");
+  Serial.print(t);
+  Serial.print(" *C ");
+  Serial.print(f);
+  Serial.print(" *F\t");
+  Serial.print("Heat index: ");
+  Serial.print(hic);
+  Serial.print(" *C ");
+  Serial.print(hif);
+  Serial.println(" *F");
 
-    dtostrf(moisture, 0, 1, moisture_c); //converts floats to strings
+   /**************Moistuer sensor*************/
+  moistsensVal = analogRead(moistsensPin);    
+  delay(1000);          
+  Serial.print("soil moistuer = " );                       
+  Serial.println(moistsensVal);               
 
-    return (String) moisture_c;
-}
+   /**************light sensor*************/
+  litsensVal = analogRead(litsensPin);    
+  delay(1000);          
+  Serial.print("sensor = " );                       
+  Serial.println(litsensVal);               
 
-String photoresistor () {
-
-    char luxValue_c[6];
-    double voltageOUT = (5.04/1023)*analogRead(photoresistorPIN);
-    double photoResistance = 12000*((5.04/voltageOUT)-1);
-    double a = 0.7;
-    double luxValue = pow((30000/photoResistance), 1/a);
-    dtostrf(luxValue, 0, 1, luxValue_c); //converts floats to strings
-
-    return (String) luxValue_c;
-}
-
-
-//sends ambient temperature and humidity to ThingSpeak
-void upadatevValues(String temperature_c,
-                    String humidity_c,
-                    String moisture_c,
-                    String soilTemperature_c,
-                    String luxValue_c)
-                    {
-    cmd = "AT+CIPSTART=\"TCP\",\"";
-    cmd += IP;
-    cmd += "\",80";
-    esp8266.println(cmd);
-    delay(2000);
-
-        if(esp8266.find("Error")){
-            Serial.print("Error1");
-        return;
-        }
-
-    cmd = GET + GET1;
-    cmd += temperature_c;
-    cmd += GET2;
-    cmd += humidity_c;
-    cmd += GET3;
-    cmd += moisture_c;
-    cmd += GET4;
-    cmd += soilTemperature_c;
-    cmd += GET5;
-    cmd += luxValue_c;
-
-    cmd += "\r\n";
-
-    Serial.print(cmd);
-    esp8266.print("AT+CIPSEND=");
-    esp8266.println(cmd.length());
-
-        if(esp8266.find(">")){
-            esp8266.print(cmd);
-        }
-        else{
-            esp8266.println("AT+CIPCLOSE");
-        }
-}
-
-boolean connectWiFi(){
-  esp8266.println("AT+CWMODE=1");
-  delay(2000);
-  String cmd="AT+CWJAP=\"";
-  cmd+=SSID;
-  cmd+="\",\"";
-  cmd+=PASS;
-  cmd+="\"";
-  esp8266.println(cmd);
-  delay(5000);
-  if(esp8266.find("OK")){
-    Serial.println("OK");
-    return true;
-  }else{
-    Serial.println("KO");
-    return false;
+ ///////////////////////////////////////////////////////////////////////////////////// 
+  // Print Update Response to Serial Monitor
+  if (client.available())
+  {
+    char c = client.read();
+    Serial.print(c);
   }
+
+  // Disconnect from ThingSpeak
+  if (!client.connected() && lastConnected)
+  {
+    Serial.println("...disconnected");
+    Serial.println();
+    
+    client.stop();
+  }
+  
+  // Update ThingSpeak
+  if(!client.connected() && (millis() - lastConnectionTime > updateThingSpeakInterval))
+  {
+    updateThingSpeak("field1="+humid);
+    updateThingSpeak("field2="+temp);
+    updateThingSpeak("field3="+moistsensVal);
+    updateThingSpeak("field4="+litsensVal);
+  }
+  
+  // Check if Arduino Ethernet needs to be restarted
+  if (failedCounter > 3 ) {startEthernet();}
+  
+  lastConnected = client.connected();
 }
-}
-void setup()
+
+void updateThingSpeak(String tsData)
 {
-    pinMode(soilMoisturePIN, INPUT);
+  if (client.connect(thingSpeakAddress, 80))
+  {         
+    client.print("POST /update HTTP/1.1\n");
+    client.print("Host: api.thingspeak.com\n");
+    client.print("Connection: close\n");
+    client.print("X-THINGSPEAKAPIKEY: "+writeAPIKey+"\n");
+    client.print("Content-Type: application/x-www-form-urlencoded\n");
+    client.print("Content-Length: ");
+    client.print(tsData.length());
+    client.print("\n\n\n\n\n");
+
+    client.print(tsData);
+    
+    lastConnectionTime = millis();
+    
+    if (client.connected())
+    {
+      Serial.println("Connecting to ThingSpeak...");
+      Serial.println();
+      
+      failedCounter = 0;
+    }
+    else
+    {
+      failedCounter++;
   
-    pinMode(photoresistorPIN, INPUT);
-    Serial.begin(9600);
-    esp8266.begin(115200);
-    //sensors.begin();
-    esp8266.println("AT");
-    delay(5000);
-    if(esp8266.find("OK")){
-    connectWiFi();
+      Serial.println("Connection to ThingSpeak failed ("+String(failedCounter, DEC)+")");   
+      Serial.println();
+    }
+    
   }
-}
-
-void loop(){
-
-    dht22TandH = dht22();
-    soilMoist = soilMoisture();
-  
-    illuminance = photoresistor();
-
-    upadatevValues(getValue(dht22TandH, ':', 0), getValue(dht22TandH, ':', 1),soilMoist, soilTemp, illuminance);
-    delay(2000);
+  else
+  {
+    failedCounter++;
+    
+    Serial.println("Connection to ThingSpeak Failed ("+String(failedCounter, DEC)+")");   
+    Serial.println();
+    
+    lastConnectionTime = millis(); 
+  }
 }
 
 void startEthernet()
