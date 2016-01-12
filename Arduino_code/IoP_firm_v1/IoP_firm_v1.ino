@@ -4,24 +4,13 @@
 #include <Ethernet.h>
 #include "DHT.h"
 
-//Defining arduino pins
-#define DHTPIN 2     // what digital pin we're connected to
-#define DHTTYPE DHT22 
-int moistsensPin = A0;    // select the input pin for the moistuer sensor
-int moistsensVal = 0;  // variable to store the value coming from the sensor
-int litsensPin = A2;  
-int litsensVal = 0;
-
 // Local Network Settings
 byte mac[] = { 0xD4, 0x28, 0xB2, 0xFF, 0xA0, 0xA1 }; // Must be unique on local network
 
 // ThingSpeak Settings
 char thingSpeakAddress[] = "api.thingspeak.com";
-String writeAPIKey = "XXXMX2WYYR0EVZZZ";
+String writeAPIKey = "R09Z4A6OS4VLWNX5";
 const int updateThingSpeakInterval = 16 * 1000;      // Time interval in milliseconds to update ThingSpeak (number of seconds * 1000 = interval)
-
-// Initialize DHT sensor.
-DHT dht(DHTPIN, DHTTYPE);
 
 // Variable Setup
 long lastConnectionTime = 0; 
@@ -30,6 +19,17 @@ int failedCounter = 0;
 
 // Initialize Arduino Ethernet Client
 EthernetClient client;
+
+//Defining arduino pins
+#define DHTPIN 2     // what digital pin we're connected to
+#define DHTTYPE DHT22 
+int moistsensPin0 = A0;    // select the input pin for the moistuer sensor
+int moistsensVal = 0;  // variable to store the value coming from the sensor
+int litsensPin0 = A2;  
+int litsensVal = 0;
+
+// Initialize DHT sensor.
+DHT dht(DHTPIN, DHTTYPE);
 
 void setup()
 {
@@ -43,58 +43,43 @@ void setup()
 void loop()
 {
   /**************humidity and temperature*************/
-    delay(2000);
+   // delay(2000);
 
   // Reading temperature or humidity takes about 250 milliseconds!
   float h = dht.readHumidity();
-  int  humid = h;
+  String  humid = String (h);
+
   // Read temperature as Celsius (the default)
   float t = dht.readTemperature();
-  int  temp = t;
+  String  temp = String (t);
+
   // Read temperature as Fahrenheit (isFahrenheit = true)
-  float f = dht.readTemperature(true);
+  // float f = dht.readTemperature(true);
 
   // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) || isnan(f)) {
+  if (isnan(h) || isnan(t) ) {
     Serial.println("Failed to read from DHT sensor!");
     return;
   }
 
-  // Compute heat index in Fahrenheit (the default)
-  float hif = dht.computeHeatIndex(f, h);
-  // Compute heat index in Celsius (isFahreheit = false)
-  float hic = dht.computeHeatIndex(t, h, false);
-
-  Serial.print("Humidity: ");
-  Serial.print(h);
-  Serial.print(" %\t");
-  Serial.print("Temperature: ");
-  Serial.print(t);
-  Serial.print(" *C ");
- // Serial.print(f);
-//  Serial.print(" *F\t");
-//  Serial.print("Heat index: ");
-//  Serial.print(hic);
-//  Serial.print(" *C ");
-//  Serial.print(hif);
- // Serial.println(" *F");
-
    /**************Moistuer sensor*************/
   //moistsensVal = analogRead(moistsensPin); 
-  int moistsensVal = map(analogRead(moistsensPin),0,1024,0,100);   
-  delay(1000);          
-  Serial.print("soil moistuer = " );                       
-  Serial.println(moistsensVal);               
+  int moistsensVal = map(analogRead(moistsensPin0),0,1024,0,100);
+  String moistsensPin = String(moistsensVal);   
+  //delay(1000);          
+ // Serial.print("soil moistuer = " );                       
+  //Serial.println(moistsensVal);               
 
    /**************light sensor*************/
-  litsensVal = analogRead(litsensPin);   
-  int litsensVal = map(analogRead(litsensPin),0,1024,0,100);    
-  delay(1000);          
-  Serial.print("sensor = " );                       
-  Serial.println(litsensVal);               
+  //litsensVal = analogRead(litsensPin);   
+  int litsensVal = map(analogRead(litsensPin0),0,1024,0,100);
+  String litsensPin = String(litsensVal);    
+ // delay(1000);          
+ // Serial.print("light sensor = " );                       
+ // Serial.println(litsensVal);               
 
  ///////////////////////////////////////////////////////////////////////////////////// 
-  // Print Update Response to Serial Monitor
+// Print Update Response to Serial Monitor
   if (client.available())
   {
     char c = client.read();
@@ -113,10 +98,7 @@ void loop()
   // Update ThingSpeak
   if(!client.connected() && (millis() - lastConnectionTime > updateThingSpeakInterval))
   {
-    updateThingSpeak("field1="+humid);
-    updateThingSpeak("field2="+temp);
-    updateThingSpeak("field3="+moistsensVal);
-    updateThingSpeak("field4="+litsensVal);
+    updateThingSpeak("field1="+moistsensPin+"&field2="+litsensPin+"&field3="+temp+"&field4="+humid);
   }
   
   // Check if Arduino Ethernet needs to be restarted
@@ -136,7 +118,7 @@ void updateThingSpeak(String tsData)
     client.print("Content-Type: application/x-www-form-urlencoded\n");
     client.print("Content-Length: ");
     client.print(tsData.length());
-    client.print("\n\n\n\n\n");
+    client.print("\n\n");
 
     client.print(tsData);
     
