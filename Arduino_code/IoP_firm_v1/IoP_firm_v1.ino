@@ -1,7 +1,7 @@
 
 //loading libraries
 #include <SPI.h>
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include "DHT.h"
 
 // Local Network Settings
