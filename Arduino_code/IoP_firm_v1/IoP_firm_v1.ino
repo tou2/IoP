@@ -2,7 +2,7 @@
 //loading libraries
 #include <SPI.h>
 #include <Ethernet2.h>
-#include "DHT.h"
+//#include "DHT.h"
 
 // Local Network Settings
 byte mac[] = { 0xD4, 0x28, 0xB2, 0xFF, 0xA0, 0xA1 }; // Must be unique on local network
@@ -21,15 +21,15 @@ int failedCounter = 0;
 EthernetClient client;
 
 //Defining arduino pins
-#define DHTPIN 2     // what digital pin we're connected to
-#define DHTTYPE DHT22 
+//#define DHTPIN 2     // what digital pin we're connected to
+//#define DHTTYPE DHT22 
 int moistsensPin0 = A0;    // select the input pin for the moistuer sensor
 int moistsensVal = 0;  // variable to store the value coming from the sensor
 int litsensPin0 = A2;  
 int litsensVal = 0;
 
 // Initialize DHT sensor.
-DHT dht(DHTPIN, DHTTYPE);
+//DHT dht(DHTPIN, DHTTYPE);
 
 void setup()
 {
@@ -46,21 +46,21 @@ void loop()
    // delay(2000);
 
   // Reading temperature or humidity takes about 250 milliseconds!
-  float h = dht.readHumidity();
-  String  humid = String (h);
+ // float h = dht.readHumidity();
+ // String  humid = String (h);
 
   // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
-  String  temp = String (t);
+  //float t = dht.readTemperature();
+  //String  temp = String (t);
 
   // Read temperature as Fahrenheit (isFahrenheit = true)
   // float f = dht.readTemperature(true);
 
   // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) ) {
-    Serial.println("Failed to read from DHT sensor!");
-    return;
-  }
+  //if (isnan(h) || isnan(t) ) {
+    //Serial.println("Failed to read from DHT sensor!");
+    //return;
+  //}
 
    /**************Moistuer sensor*************/
   //moistsensVal = analogRead(moistsensPin); 
@@ -98,7 +98,7 @@ void loop()
   // Update ThingSpeak
   if(!client.connected() && (millis() - lastConnectionTime > updateThingSpeakInterval))
   {
-    updateThingSpeak("field1="+moistsensPin+"&field2="+litsensPin+"&field3="+temp+"&field4="+humid);
+    updateThingSpeak("field1="+moistsensPin+"&field2="+litsensPin+"&field3="+temp);
   }
   
   // Check if Arduino Ethernet needs to be restarted
