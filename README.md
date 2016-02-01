@@ -11,3 +11,7 @@ Ardunio IDE download page: https://www.arduino.cc/en/Main/Software
 How to install the dependencies: https://www.arduino.cc/en/Guide/Libraries
 
 
+
+IoT web service: thingspeak.com
+
+IoT Dashboard: http://freeboard.io
