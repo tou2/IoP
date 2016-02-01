@@ -2,7 +2,7 @@
 //loading libraries
 #include <SPI.h>
 #include <Ethernet2.h>
-//#include "DHT.h"
+#include "DHT.h"
 
 // Local Network Settings
 byte mac[] = { 0xD4, 0x28, 0xB2, 0xFF, 0xA0, 0xA1 }; // Must be unique on local network
