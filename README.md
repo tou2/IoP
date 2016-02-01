@@ -12,7 +12,7 @@ Ardunio IDE download page: https://www.arduino.cc/en/Main/Software
 
 
 
-##### IoT web service: thingspeak.com
+##### IoT web service: https://thingspeak.com
 
 ##### IoT Dashboard: http://freeboard.io
 
