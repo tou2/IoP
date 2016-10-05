@@ -22,7 +22,7 @@ EthernetClient client;
 
 //Defining arduino pins
 #define DHTPIN 2     // what digital pin we're connected to
-#define DHTTYPE DHT22 
+#define DHTTYPE DHT11 
 int moistsensPin0 = A0;    // select the input pin for the moistuer sensor
 int moistsensVal = 0;  // variable to store the value coming from the sensor
 int litsensPin0 = A2;  
