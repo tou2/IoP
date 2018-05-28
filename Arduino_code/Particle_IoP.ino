@@ -5,17 +5,15 @@
 #include <ThingSpeak.h>
 
 
-//#define DHTPIN D2     // what pin we're connected to
 
-//#define DHTTYPE DHT22		// DHT 22 (AM2302)
 #include "ThingSpeak.h"
 
 TCPClient client;
 
 #include "Adafruit_DHT.h"
 
-unsigned long myChannelNumber = 443542;		/*Thingspeak channel id*/
-const char * myWriteAPIKey = "4V4UQ5VL59D22LNR";/*Channel's write API key*/
+unsigned long myChannelNumber = 000000;		/*Thingspeak channel id*/
+const char * myWriteAPIKey = "zzzzzzzzzzzzzzzz";/*Channel's write API key*/
 
 
 int photoCell = A3;
@@ -51,14 +49,14 @@ void setup() {
 
 void loop() {
 // Wait a few seconds between measurements.
-	delay(5000);
+	delay(2000);
   light = analogRead(photoCell);
 // String light1 = String(light);
-  delay(100);  // is this needed?
+  delay(2000);  // is this needed?
   
   moist = analogRead(Moisture);
 // String light1 = String(light);
-  delay(100);  // is this needed?
+  delay(2000);  // is this needed?
 // Reading temperature or humidity takes about 250 milliseconds!
 // Sensor readings may also be up to 2 seconds 'old' (its a 
 // very slow sensor)
@@ -74,66 +72,26 @@ void loop() {
 		return;
 	}
 
-// Compute heat index
-// Must send in temp in Fahrenheit!
-/*	float hi = dht.getHeatIndex();
-	float dp = dht.getDewPoint();
-	float k = dht.getTempKelvin();
-	*/
 
- ThingSpeak.setField(1,h);
-  ThingSpeak.setField(2,f);
-   ThingSpeak.setField(3,light);
-  ThingSpeak.setField(4,moist);
+ ThingSpeak.setField(1,h); // humidity 
+  ThingSpeak.setField(2,f);//  temperature as Farenheit
+   ThingSpeak.setField(3,light); // light
+  ThingSpeak.setField(4,moist); // soil moisture
 
   // Write the fields that you've set all at once.
   ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  
   delay(20000);	
  
 
-//ThingSpeak.writeField(myChannelNumber, 1, light, myWriteAPIKey);
- //delay(1500); /* ThingSpeak will only accept updates every 15 seconds.*/
- 
- //ThingSpeak.writeField(myChannelNumber, 2, moist, myWriteAPIKey);
-// delay(1500); /* ThingSpeak will only accept updates every 15 seconds.*/
- 
-// ThingSpeak.writeField(myChannelNumber, 3, h, myWriteAPIKey);
- //delay(1500); /* ThingSpeak will only accept updates every 15 seconds*/
- //
-// ThingSpeak.writeField(myChannelNumber, 4, f, myWriteAPIKey);
- //delay(1500); /* ThingSpeak will only accept updates every 15 seconds.*/
- 
 
-  
-  /*
-    Serial.print("light"); 
-	Serial.print(light);
-	Serial.print("Humid: "); 
-	Serial.print(h);
-	Serial.print("% - ");
-//	Serial.print("Temp: "); 
-//	Serial.print(t);
-//	Serial.print("*C ");
-	Serial.print(f);
-	Serial.print("*F ");
-//	Serial.print(k);
-//	Serial.print("*K - ");
-//	Serial.print("DewP: ");
-//	Serial.print(dp);
-//	Serial.print("*C - ");
-//	Serial.print("HeatI: ");
-//	Serial.print(hi);
-//	Serial.println("*C");
-//	Serial.println(Time.timeStr());
-	*/
-//	String timeStamp = Time.timeStr();
-//	Particle.publish("readings", String::format("{\light: light, \"Hum(\%)\": %4.2f}",light, h, f));
+
 delay(1500);
 	loopCount++;
-	if(loopCount >= 5){
+	if(loopCount >= 5){ // the kit will read 5 times before going to power saver sleep mode, you can edit the number to any number you like.
 	  Particle.publish("state", "Going to sleep for 1/2 minutes");
 	  delay(10000);
-	  System.sleep(SLEEP_MODE_DEEP, 5);  
+	  System.sleep(SLEEP_MODE_DEEP, 5);  // The kit will go into deep sleep mode to save power for 5 seconds, 
+					     // please edit to change the sleep time, example: 3600 seconds is one houre sleep time. 
 	}
 }
 
