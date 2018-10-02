@@ -12,8 +12,8 @@ TCPClient client;
 
 #include "Adafruit_DHT.h"
 
-unsigned long myChannelNumber = 000000;		/*Thingspeak channel id*/
-const char * myWriteAPIKey = "zzzzzzzzzzzzzzzz";/*Channel's write API key*/
+unsigned long myChannelNumber = youchanelnumberhere;		/*Thingspeak channel id*/
+const char * myWriteAPIKey = "youapikeyhere";/*Channel's write API key*/
 
 
 int photoCell = A3;
